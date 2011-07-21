@@ -1,3 +1,29 @@
+TODO:
+  Write Arena WebWorker.
+    It takes moves in as events, then postMessages back to the DOM with the new coordinates of all the things on the page.
+    postMessages the visibility updates for each bot
+    postMessages the display state
+
+  Write Arena Renderer.
+    catches messages from the arena - takes the data and draws it
+
+
+
+
+Workflow:
+
+[ Bot ]   [Arena]       [Renderer]
+  start
+
+   <---  update
+   --->  desired move
+           --------->  update whole display
+   <---  update
+   ---> desired move
+           RECALCULATE
+           --------->  update the whole display
+
+
 The idea is simple...  Who can write the quickest, most effective AI in the whole office?
 
 The battle field will be a simple rectangular area -- with or without obstacles.

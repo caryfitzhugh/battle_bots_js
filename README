@@ -1,0 +1,29 @@
+The idea is simple...  Who can write the quickest, most effective AI in the whole office?
+
+The battle field will be a simple rectangular area -- with or without obstacles.
+
+You get a battle bot to configure and then maneuver.
+
+Your AI will be a webworker.
+
+It does a few things:
+
+on startup - it just initializes the game environemtn.
+then starts an event loop - providing the visible world state to the bot, and getting a command back.
+The faster a bot can decide what to do - the more commands he can complete.  So calculating a ton of stuff is not normally a great idea.
+
+Then it provides to each battle bot an update of the environment THAT THEY CAN SEE.
+
+The battle bot can then take that info - do whatever processing it wants to
+and then postMessage back the thing that you want to do.
+
+you can do any number of things at each response.
+you can turn, fire, or try to set your speed to a certain value (m/s)
+
+Firing is simply drawing a line from your tank at your current orientation to infinity - and seeing if it hits the other tank.
+the more powerful your shot - the wider the beam (and more destructive).
+accuracy decreases with speed (a delta on the angle you are shooting with).
+
+You have unlimited ammo - but your laser cannon regharges itself at a given rate.
+The faster you are moving, the slower your cannon recharges.
+You have a maximum speed, and a maximum rate of accel / decel. so you set the speed, and we'll get as close as we can for you.

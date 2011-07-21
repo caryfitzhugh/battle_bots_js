@@ -1,0 +1,14 @@
+%h2 Begin
+
+%form{:method=>:post}
+  %label Bot 1
+  %select{:name=>'bot[]'}
+    - @bots.each do |bot|
+      %option{:name=>bot.name, :value=>bot.name}= bot.name.titleize
+
+  %label Bot 2
+  %select{:name=>'bot[]'}
+    - @bots.each do |bot|
+      %option{:name=>bot.name, :value=>bot.name}= bot.name.titleize
+
+  %input{:type=>:submit, :value=>"FIGHT!"}

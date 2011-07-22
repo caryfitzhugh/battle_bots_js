@@ -1,3 +1,15 @@
+Closer... now the arena spins up, etc..
+
+
+NEW TODO:
+  write the arena code to update all the objects on each pass
+  move.
+  check for collisions.  If collided - mark as 'dead'.
+  if you go off the edge of the screen u r dead.
+
+
+
+
 TODO:
   Write Arena WebWorker.
     It takes moves in as events, then postMessages back to the DOM with the new coordinates of all the things on the page.

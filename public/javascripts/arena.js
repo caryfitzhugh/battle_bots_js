@@ -1,20 +1,24 @@
-var postJSON = function(obj) {
-  postMessage(JSON.stringify(obj));
+importScripts("/javascripts/common.js");
+// headings = 0 (up) 1 right 2 down 3 left
+var update_world = function() {
+  // Iterate over all objects to move them
+  log("updating world");
 };
 
-var console = {
-  log: function(msg) {
-    postJSON({command: 'log', 'message': msg});
-  }
+var main_loop = function() {
+  update_world();
+  setTimeout(main_loop, 250);
+}.bind(this);
+
+
+var arena   = {
+  'objects': []
 };
 
-var objects = [];
-var arena = {};
-var update_bot = function(index ) {
-  postJSON($.extend(objects, {'bot':index}));
-};
+this.onmessage = function (event) {
+  var v = 0;
+  var x = 1;
 
-onmessage = function (event) {
   var message = JSON.parse(event.data);
   switch (message.command) {
     case 'setup_world':
@@ -22,18 +26,23 @@ onmessage = function (event) {
       arena.width = message.width;
       // place the bots randomly
       for (var i = 0; i < message.bot_count; i++) {
-        objects.push({bot: i, dx:0, dy:0, x: Math.random()*arena.width , y:Math.random()*arena.height});
+        arena.objects.push({bot: i, dx:0, dy:0, heading: 0, x: Math.random()*arena.width , y:Math.random()*arena.height});
       }
+      main_loop();
       break;
     case 'start' :
-      $.each(objects.bots, function( bot, index) {
-        update_bot(index);
-      });
+      // Update everyone initially with positions....
+      // they can then give commands.
       break;
-    case 'move':
-      bot_update(message);
+    case 'speed':
+      // Move fwd or backwards (set your dx / dy)
       break;
     case 'turn':
+      var dir = message.message;
+      if (dir < 0 || dir > 4) {
+        dir = 0;
+      }
+      objects[message.bot].heading = dir;
       break;
     case 'fire':
       break;

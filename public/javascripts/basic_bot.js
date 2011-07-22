@@ -1,45 +1,39 @@
-var postJSON = function(obj) {
-  postMessage(JSON.stringify(obj));
-}
-var console = {
-  log: function(msg) {
-    postJSON({command: 'log', 'message': msg});
-  }
-};
+importScripts("/javascripts/common.js");
+
 //  Start up everything...
 var bot_start = function(message) {
-  console.log('define bot_start!');
+  log('define bot_start!');
 };
 
 // You got an updated state of the world... whatcha gonna do?
 // message is a map array NxN
 // elements are things on the map in a table with x,y
 var bot_update = function(message) {
-  console.log('define bot_update!');
+  log('define bot_update!');
  };
 
-// -1 or +1
-var move_bot = function(direction) {
-  postJSON({'command':'move',
+// -1 or 0 or +1 (rev, stop, fwd)
+var set_speed = function(direction) {
+  post({'command':'speed',
             'message':direction});
-};
+}.bind(this);
 
-// is a {x,y} vector
-//        0   1
-//  -1 0    T    1 0
-//        0  -1
-var turn_bot = function(new_direction) {
-  postJSON({'command':'turn',
+// is a number
+//          0
+//        3 T 1
+//          2
+var turn = function(new_direction) {
+  post({'command':'turn',
             'message':new_direction});
-};
+}.bind(this);
 
 // When you want to fire
-var fire_rocket = function() {
-  postJSON(
+var fire = function() {
+  post(
       {'command':'fire',
        'message' : target_pos}
     );
-};
+}.bind(this);
 
 onmessage = function (event) {
   var message = JSON.parse(event.data);

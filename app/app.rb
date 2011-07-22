@@ -11,7 +11,7 @@ class BattleBots < Padrino::Application
       @name = File.basename(name)
     end
     def bot_source
-      File.read(File.join(".","public",'javascripts','basic_bot.js'))+File.read(File.join(".", ROOT_DIR, @name))
+      File.read(File.join(".", ROOT_DIR, @name))
     end
   end
 

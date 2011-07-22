@@ -10,18 +10,33 @@ TODO:
 
 
 
+
 Workflow:
 
 [ Bot ]   [Arena]       [Renderer]
   start
-
-   <---  update
+   <---  update_map
+   <---  update_positions
    --->  desired move
            --------->  update whole display
    <---  update
    ---> desired move
            RECALCULATE
            --------->  update the whole display
+
+The map can be updated with a message to each bot - so that eventually one could have deformable terrain.
+It is simply a 1024 x 1024 array of ints. ( 4 MB! :))
+
+BOT API:
+in: update_map
+in: update_viewable_data
+  Has a list of features that are visible and current status:
+  health, shield, current power ratings, turret angle, any tanks in the cone of vision.
+out: desired_action
+  turn turret to angle X (we'll slew until we get there)
+  desired speed (we'll change until we get there)
+  fire laser (fires in current direction)
+  use special power (they have to have some cost for energy)
 
 
 The idea is simple...  Who can write the quickest, most effective AI in the whole office?

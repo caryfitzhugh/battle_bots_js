@@ -21,7 +21,7 @@ var bot_update = function(message) {
 // -1 or +1
 var move_bot = function(direction) {
   postJSON({'command':'move',
-            'direction':direction});
+            'message':direction});
 };
 
 // is a {x,y} vector
@@ -30,15 +30,14 @@ var move_bot = function(direction) {
 //        0  -1
 var turn_bot = function(new_direction) {
   postJSON({'command':'turn',
-            'direction':new_direction});
+            'message':new_direction});
 };
 
-// When you want to fire--- just choose a point and fire!
-// target_pos is an absolute position:  {x,y}
-var fire_rocket = function(target_pos) {
+// When you want to fire
+var fire_rocket = function() {
   postJSON(
       {'command':'fire',
-       'target' : target_pos}
+       'message' : target_pos}
     );
 };
 

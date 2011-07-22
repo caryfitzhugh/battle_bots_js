@@ -20,7 +20,6 @@ class BattleBots < Padrino::Application
   register Padrino::Helpers
   enable :sessions
 
-  # OUR BATTLE APP!
   get "/" do
     @bots = BotSource.all
     render "setup"

@@ -7,6 +7,7 @@ var Bot = {
     bot.postMessage(JSON.stringify({command: 'update', world: ''}));
   }
 };
+
 var BattleBots = {
   bots: [],
   fight: function(bot_names) {
@@ -14,15 +15,28 @@ var BattleBots = {
     // Setup arena / game world
 
 
-    this.bots = $.map(bot_names, function(name) {
+    this.bots = $.map(bot_names, function(name, index) {
       var bot = new Worker("/bot/"+name);
-
-      console.log(name +": creating...");
-      // Setup how bots talk back to us
+      var log = function(msg) {
+        console.log(name+"["+index+"]: "+msg);
+      };
 
       bot.onmessage = function(evt) {
-        console.log(evt.data);
-        // Redraw the map
+        var message = JSON.parse(evt.data);
+        switch (message.command) {
+          case 'log':
+            log(message.message);
+            break;
+          case 'fire':
+            log("firing");
+            break;
+          case 'turn':
+            log("turning");
+            break;
+          case 'move':
+            log("moving");
+            break;
+        }
       };
       Bot.start(bot);
 

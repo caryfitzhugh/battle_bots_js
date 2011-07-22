@@ -2,6 +2,7 @@ source :rubygems
 
 # Server requirements
 # gem 'thin' or mongrel
+gem 'ruby-debug'
 
 # Project requirements
 gem 'rake'

@@ -1,18 +1,17 @@
+require 'ruby-debug'
 class BattleBots < Padrino::Application
   class BotSource
     ROOT_DIR = "bots"
+    attr_accessor :name
     def self.all
-      loc = File.join(".",ROOT_DIR,"*")
-      Dir[loc].collect {|dir| BotSource.new(dir) }
+      loc = File.join(".",ROOT_DIR,"*_bot.js")
+      Dir[loc].collect {|dir| BotSource.new(dir) }.compact
     end
-    def initialize(dir)
-      @dir = dir
-    end
-    def name
-      File.basename(@dir)
+    def initialize(name)
+      @name = File.basename(name)
     end
     def bot_source
-      File.read(File.join(".", ROOT_DIR, @dir, 'bot.js'))
+      File.read(File.join(".","public",'javascripts','basic_bot.js'))+File.read(File.join(".", ROOT_DIR, @name))
     end
   end
 

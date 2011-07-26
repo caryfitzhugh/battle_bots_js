@@ -10,7 +10,7 @@ onmessage = function (event) {
       bot.start();
       break;
     case 'update':
-      bot.update(message);
+      bot._update(message);
       break;
   }
 }.bind(this);

@@ -1,6 +1,10 @@
 var bot = {
+  alive: true,
   bot_initialization_parameters : {
     'image_url': "http://www-personal.umich.edu/~bazald/l/tutorial/zenitank/tank.png"
+  },
+  taunt: function(msg) {
+    worker.command('taunt', msg);
   },
   join_arena: function(extra_params) {
     extra_params = extra_params || {};
@@ -9,7 +13,21 @@ var bot = {
   start: function(message) {
     log('define bot_start!');
   },
-  update: function(message) {
+  _im_dead: function(message) {
+    this.alive = false;
+    this.im_dead(message);
+  },
+  im_dead: function(message) {
+    log("I am dead");
+  },
+  _update: function(message) {
+    if (!message.me && this.alive) {
+      this._im_dead(message);
+    } else if (message.me) {
+      this.update(message.me, message);
+    }
+  },
+  update: function(me, message) {
     log('define bot_update!');
   },
   // -1 or 0 or +1 (rev, stop, fwd)

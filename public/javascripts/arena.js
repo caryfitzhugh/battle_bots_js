@@ -2,7 +2,9 @@ importScripts("/javascripts/common.js");
 importScripts("/javascripts/underscore.js");
 
 var arena   = {
-  'objects': {}
+  'objects': {},
+  max_shots: 2,
+  reload_shot_time: 5
 };
 
 // headings = 0 (up) 1 right 2 down 3 left
@@ -29,7 +31,6 @@ var move = function(obj, direction) {
 };
 
 var move_objects = function(objects) {
-  var new_state = {};
   // Move things.
   _.each(objects, function(obj) {
     if (obj.type != 'wreck') {
@@ -40,6 +41,24 @@ var move_objects = function(objects) {
   return objects;
 }.bind(this);
 
+var regen_bots = function(objects) {
+  _.each(objects, function(obj) {
+    if (obj.type == 'bot') {
+      if (obj.speed === 0) {
+        obj.reloading_counter = obj.reloading_counter || 0;
+        obj.reloading_counter += 1;
+        if (obj.reloading_counter > arena.reload_shot_time && obj.shots < arena.max_shots) {
+          obj.shots += 1;
+          //log('bot: ' + obj.uid + ' reloaded 1 shot');
+          obj.reloading_counter = 0;
+        }
+      } else {
+        obj.reloading_counter = 0;
+      }
+    }
+  });
+  return objects;
+};
 var check_for_collisions = function(objects) {
   var delete_bullet_guids = [];
   _.each(objects, function(obj1, guid1) {
@@ -99,11 +118,15 @@ var remove_bullets_off_edge = function(objects) {
 var main_loop = function() {
   arena.objects = move_objects(arena.objects);
   arena.objects = remove_bullets_off_edge(arena.objects);
+  arena.objects = regen_bots(arena.objects);
   arena.objects = stop_bots_off_edge(arena.objects);
   arena.objects = check_for_collisions(arena.objects);
-
   post({command:'update', message: arena.objects});
-  setTimeout(main_loop, 250);
+  _.each(arena.objects, function(object, guid) {
+    object.taunts = [];
+  });
+  setTimeout(main_loop, 1000);
+
 }.bind(this);
 
 this.onmessage = function (event) {
@@ -119,9 +142,13 @@ this.onmessage = function (event) {
       break;
     case 'join' :
       var bot_guid = message.uid;
-      arena.objects[bot_guid] = _.extend(message.message, {type: 'bot', uid: bot_guid, shots: 5, speed: 1, heading: 0, x: Math.floor(Math.random()*arena.width) , y:Math.floor(Math.random()*arena.height)});
+      arena.objects[bot_guid] = _.extend(message.message, {type: 'bot', uid: bot_guid, shots: arena.max_shots, speed: 1, heading: 0, x: Math.floor(Math.random()*arena.width) , y:Math.floor(Math.random()*arena.height), taunts:[]});
       arena.objects[bot_guid] = move(arena.objects[bot_guid]);
       log("Bot " + bot_guid + " joined");
+      break;
+    case 'taunt' :
+      var bot_guid = message.uid;
+      arena.objects[bot_guid].taunts.push(message.message);
       break;
     case 'speed':
       // Move fwd or backwards (set your dx / dy)
@@ -136,7 +163,7 @@ this.onmessage = function (event) {
         default:
           bot.speed = 0;
       }
-      log("Bot " + bot_guid + " changing speed");
+      //log("Bot " + bot.uid + " changing speed");
       break;
     case 'turn':
       var bot = arena.objects[message.uid];
@@ -149,22 +176,22 @@ this.onmessage = function (event) {
         new_dir = 0;
       }
 
-      log("Bot " + bot_guid + " turning");
+      //log("Bot " + bot.uid + " turning");
       arena.objects[message.uid].heading = new_dir;
       break;
     case 'fire':
-      var bot_guid = message.uid;
-      var bot = arena.objects[bot_guid];
+      var bot = arena.objects[message.uid];
 
-      log("Bot " + bot_guid + " firing");
+      //log("Bot " + bot.uid + " firing");
       if (bot.shots > 0) {
         var uid = guid();
         bot.shots -= 1;
-        var bullet = {uid: uid, type:'bullet', speed: 1, heading: bot.heading, x: bot.x, y: bot.y};
+        var bullet = {image_url: 'http://cdn1.iconfinder.com/data/icons/momenticons-gloss-basic/momenticons-gloss-basic/32/bullet-black.png',
+                      uid: uid, type:'bullet', speed: 1, heading: bot.heading, x: bot.x, y: bot.y};
         bullet = move(bullet);
         arena.objects[uid] = bullet;
       } else {
-        log("Bot " + bot_guid + " misfired -- no ammo");
+        //log("Bot " + bot.uid + " misfired -- no ammo");
       }
       break;
   }

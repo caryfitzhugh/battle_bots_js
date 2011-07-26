@@ -34,7 +34,7 @@ var draw_map = function(message) {
 
     var display = $("."+uid);
     if (display.length === 0) {
-      display = $("<div class=\"obj "+obj.type+" "+uid+"\"><img width=20 height=20 src='"+obj.image_url+"'/></div>");
+      display = $("<div class=\"obj "+obj.type+" "+uid+"\"><img width=20 height=20 src='"+obj.image_url+"'/><div class='taunts'></div></div>");
       display.css({'position': 'absolute'});
       $('.battlefield').append(display);
     }
@@ -42,10 +42,17 @@ var draw_map = function(message) {
     display.css('top',  obj.y*y_px+"px");
     display.css('left', obj.x*x_px+"px");
     display.show();
+    if (obj.taunts) {
+      $.each(obj.taunts, function(indx, taunt_txt) {
+        var taunt = $("<div class='taunt'>"+taunt_txt+"</div>");
+        display.find(".taunts").prepend(taunt);
+        taunt.fadeOut(3000, function() { $(this).remove(); });
+      });
+    }
+
   });
   $('.obj:hidden').remove();
 };
-
 
 
 var BattleBots = {
@@ -63,7 +70,11 @@ var BattleBots = {
       } else if (message.command == 'update' ) {
         draw_map(message);
         $.each(bots.keys(), function(index,guid) {
-          bots[guid].post({'command':'update', me: message.message[guid],message: message.message});
+          var me = message.message[guid];
+          if (me.type == 'wreck') {
+            me = null;
+          }
+          bots[guid].post({'command':'update', me: me,message: message.message});
         }.bind(this));
       } else {
         console.log('what?');

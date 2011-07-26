@@ -17,13 +17,6 @@ var dxdy = function(heading) {
         }[heading];
 };
 
-var add_object = function(positions, object) {
-  positions[object.x] = positions[object.x] || {};
-  positions[object.x][object.y] = positions[object.x][object.y] || [];
-  positions[object.x][object.y].push(object);
-  return positions;
-};
-
 var move = function(obj, direction) {
   direction = direction || 1;
   var vel = dxdy(obj.heading);
@@ -35,61 +28,13 @@ var move = function(obj, direction) {
   return obj;
 };
 
-var scope_for_wrecks = function( objs, wrecks ) {
-  if (wrecks.length === 0) {
-    return objs;
-  }
-
-  objs = _.map(objs, function(bot) {
-    var bots = _.map(wrecks, function(wreck) {
-      if ((bot.x == wreck.x) && (bot.y == wreck.y)) {
-        return null;
-      } else {
-        return bot;
-      }
-    });
-    bots = _.select(bots, function(bot) { return !!bot; });
-    if (bots.length === 0) {
-      return null;
-    } else {
-      return bot;
-    }
-  });
-  objs = _.select(objs, function(bot) { return !!bot; });
-  return objs;
-}.bind(this);
-
-var normalize_wrecks = function(wrecks) {
-  var map = {};
-  _.each(wrecks, function(wreck) {
-    map[""+wreck.x+"-"+wreck.y] = wreck;
-  });
-  return _.map(map, function(k, v){ return k; });
-};
-var check_for_collisions = function(positions) {
-  // Check for collisions
-  _.each(positions, function(x) {
-    _.each(positions, function(y) {
-      _.each(y, function( vals) {
-        if (vals.length > 1) {
-          var wreck = vals[0];
-          wreck.speed = 0;
-          wreck.type = 'wreck';
-          arena.wrecks.push(wreck);
-          _.each(vals, function(obj) {
-            obj.speed = 0;
-          });
-        }
-      });
-    });
-  });
-};
-
 var move_objects = function(objects) {
   var new_state = {};
   // Move things.
   _.each(objects, function(obj) {
-    move(obj);
+    if (obj.type != 'wreck') {
+      move(obj);
+    }
   });
 
   return objects;
@@ -128,9 +73,8 @@ var check_for_collisions = function(objects) {
 
 var stop_bots_off_edge = function(objects) {
   _.each(objects, function(obj,guid) {
-log(JSON.stringify(obj));
-    if (obj.x < 0 || obj.x >= arena.width ||
-        obj.y < 0 || obj.y >= arena.height &&
+    if ((obj.x < 0 || obj.x >= arena.width ||
+        obj.y < 0 || obj.y >= arena.height) &&
         obj.type == 'bot') {
       // Back up the bot
       obj = move(obj, -1);
@@ -143,8 +87,8 @@ log(JSON.stringify(obj));
 
 var remove_bullets_off_edge = function(objects) {
   _.each(objects, function(obj,guid) {
-    if (obj.x < 0 || obj.x >= arena.width ||
-        obj.y < 0 || obj.y >= arena.height &&
+    if ((obj.x < 0 || obj.x >= arena.width ||
+        obj.y < 0 || obj.y >= arena.height) &&
         obj.type == 'bullet') {
       delete objects[guid];
     }
@@ -175,17 +119,28 @@ this.onmessage = function (event) {
       break;
     case 'join' :
       var bot_guid = message.uid;
-      arena.objects[bot_guid] = {type: 'bot', uid: bot_guid, shots: 5, speed: 1, heading: 0, x: Math.floor(Math.random()*arena.width) , y:Math.floor(Math.random()*arena.height)};
+      arena.objects[bot_guid] = _.extend(message.message, {type: 'bot', uid: bot_guid, shots: 5, speed: 1, heading: 0, x: Math.floor(Math.random()*arena.width) , y:Math.floor(Math.random()*arena.height)});
       arena.objects[bot_guid] = move(arena.objects[bot_guid]);
       log("Bot " + bot_guid + " joined");
       break;
     case 'speed':
       // Move fwd or backwards (set your dx / dy)
-      arena.bots[message.bot_uid].speed = message.message;
+      var bot = arena.objects[message.uid];
+      var speed = message.message;
+      switch(speed) {
+        case -1:
+        case 0:
+        case 1:
+          bot.speed = speed;
+          break;
+        default:
+          bot.speed = 0;
+      }
+      log("Bot " + bot_guid + " changing speed");
       break;
     case 'turn':
+      var bot = arena.objects[message.uid];
       var dir = message.message;
-      var bot = arena.bots[message.bot_uid];
       var new_dir = dir + bot.heading;
 
       if (new_dir < 0){
@@ -194,7 +149,8 @@ this.onmessage = function (event) {
         new_dir = 0;
       }
 
-      arena.bots[message.bot_uid].heading = new_dir;
+      log("Bot " + bot_guid + " turning");
+      arena.objects[message.uid].heading = new_dir;
       break;
     case 'fire':
       var bot_guid = message.uid;

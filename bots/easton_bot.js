@@ -11,8 +11,6 @@ bot.update = function(message) {
     if (my_pos.speed === 0) {
       bot.turn(-1);
       bot.set_speed(1);
-    }
-    if (Math.random() > 0.5) {
       my_fire();
     }
 

@@ -3,17 +3,21 @@
     .battlefield {
       border: 3px solid red;
       background: green;
-      td {
-        height: 20px;
-        width: 20px;
-        color: #003300;
-        img { height: 20px; width: 20px; }
+      position: relative;
+      margin-top: 50px;
+      height: 500px;
+      width: 500px;
+      .wreck {
+        box-shadow: 0px 0px 20px #933;
+        img {
+          box-shadow: 0px 0px 5px #ff3;
+
+        }
       }
     }
 
 .battlefield
-  Loading...
-
+  &nbsp;
 %script
   var bots = ["#{@bot_names.join("\", \"")}"];
   BattleBots.fight(bots);

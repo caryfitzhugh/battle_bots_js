@@ -24,16 +24,23 @@ Worker.prototype.post = function(message) {
 
 
 var draw_map = function(message) {
+  var x_px = $('.battlefield').width() / params.w,
+      y_px =  $('.battlefield').height() / params.h;
+
   $('.obj').hide();
-  $.each(message.message, function(uid,obj) {
+
+  $.each(message.message.keys(), function(index,uid) {
+    var obj  = message.message[uid];
+
     var display = $("."+uid);
     if (display.length === 0) {
-      display = $("<div class=\"obj "+uid+"\">"+obj.type+"</div>");
+      display = $("<div class=\"obj "+obj.type+" "+uid+"\"><img width=20 height=20 src='"+obj.image_url+"'/></div>");
       display.css({'position': 'absolute'});
       $('.battlefield').append(display);
     }
-    display.css('top',  obj.y+"%");
-    display.css('left', obj.x+"%");
+    display.attr('class', 'obj ' + obj.type + ' ' + uid);
+    display.css('top',  obj.y*y_px+"px");
+    display.css('left', obj.x*x_px+"px");
     display.show();
   });
   $('.obj:hidden').remove();
@@ -58,8 +65,6 @@ var BattleBots = {
         $.each(bots.keys(), function(index,guid) {
           bots[guid].post({'command':'update', me: message.message[guid],message: message.message});
         }.bind(this));
-        // Send to each bot either ('you are now dead')
-        // or it's visible state
       } else {
         console.log('what?');
       }

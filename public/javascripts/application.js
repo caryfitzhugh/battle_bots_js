@@ -1,51 +1,94 @@
-Worker.prototype.post = function(message) {
-  str = JSON.stringify(message);
-  this.postMessage(str);
+Object.prototype.keys = function ()
+{
+  var keys = [];
+  for(var i in this) if (this.hasOwnProperty(i))
+  {
+    keys.push(i);
+  }
+  return keys;
+}
+
+var S4 = function () {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
 };
 
-var BattleBots = {
-  bots: [],
-  fight: function(bot_names) {
-    this.arena = new Worker("/javascripts/arena.js");
-    this.arena.onmessage =  function (evt) {
-      var message = JSON.parse(evt.data);
-      var bot_cmd = function(cmd) {
-        this.bots[cmd.index].post( cmd);
-      };
+var guid = function () {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+};
 
+var params = { w: 20, h: 20 };
+
+Worker.prototype.post = function(message) {
+  this.postMessage(message);
+};
+
+
+var draw_map = function(message) {
+  $('.obj').hide();
+  $.each(message.message, function(uid,obj) {
+    var display = $("."+uid);
+    if (display.length === 0) {
+      display = $("<div class=\"obj "+uid+"\">"+obj.type+"</div>");
+      display.css({'position': 'absolute'});
+      $('.battlefield').append(display);
+    }
+    display.css('top',  obj.y+"%");
+    display.css('left', obj.x+"%");
+    display.show();
+  });
+  $('.obj:hidden').remove();
+};
+
+
+
+var BattleBots = {
+  fight: function(bot_names) {
+    var bots = {};
+    var arena = new Worker("/javascripts/arena.js");
+    arena.onmessage =  function (evt) {
+      var message = evt.data;
       var log = function(msg) {
         console.log("arena: "+msg);
       };
 
       if (message.command == 'log') {
         log(message.message);
-      } else if (message.command == 'draw_map' ) {
-        console.log('redraw map');
+      } else if (message.command == 'update' ) {
+        draw_map(message);
+        $.each(bots.keys(), function(index,guid) {
+          bots[guid].post({'command':'update', me: message.message[guid],message: message.message});
+        }.bind(this));
+        // Send to each bot either ('you are now dead')
+        // or it's visible state
       } else {
-        bot_cmd(message);
+        console.log('what?');
       }
-    };
+    }.bind(this);
 
-    this.bots = $.map(bot_names, function(name, index) {
+    var arena = arena;
+
+    $.map(bot_names, function(name) {
+      var guid = window.guid();
       var bot = new Worker("/bot/"+name);
       var log = function(msg) {
-        console.log(name+"["+index+"]: "+msg);
+        console.log(name+"["+guid+"]: "+msg);
       };
-      var cmd = function(cmd) {
-        this.arena.post($.extend(cmd, {bot: index }));
-      };
-
       bot.onmessage = function(evt) {
-        var message = JSON.parse(evt.data);
-        if (message.command == 'log') {
-          log(message.message);
+        var msg = evt.data;
+        if (msg.command == 'log') {
+          log(msg.message);
         } else {
-          cmd(message);
+          if (!bots[guid]) {
+            bots[guid] = bot;
+          }
+          msg.uid = guid;
+          arena.post(msg);
         }
-      };
-      return bot;
+      }.bind(this);
+
+      bot.post({'command':'startup'});
     });
 
-    this.arena.post({'command':'setup_world', 'width': 100, 'height':100, 'bot_count': this.bots.length});
+    arena.post({'command':'setup_world', 'width': params.w, 'height':params.h});
   }
 };

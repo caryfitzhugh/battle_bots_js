@@ -25,6 +25,11 @@ class BattleBots < Padrino::Application
     render "setup"
   end
 
+  post "/update_bots" do
+    `cd bots && git pull --rebase`
+    redirect "/"
+  end
+
   post "/" do
     @bot_names = params[:bot]
     render "battle"
@@ -33,6 +38,7 @@ class BattleBots < Padrino::Application
   get "/bot/:name" do
     BotSource.new(params[:name]).bot_source
   end
+
   ##
   # Caching support
   #
